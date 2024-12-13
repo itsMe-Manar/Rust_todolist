@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-Do App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        header {
+            background: #6200ea;
+            color: white;
+            padding: 1rem 2rem;
+            text-align: center;
+            font-size: 1.5rem;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 1rem;
+            background: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .input-group input {
+            flex: 1;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .input-group button {
+            background: #6200ea;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .input-group button:hover {
+            background: #4500b5;
+        }
+
+        .tasks {
+            margin-top: 1.5rem;
+        }
+
+        .fetch-btn {
+    background: #03a9f4;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    font-size: 1rem;
+    margin-top: 1rem;
+    display: block;
+    width: 100%;
+    text-align: center;
+}
+
+.fetch-btn:hover {
+    background: #0288d1;
+}
+
+
+        .task {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .task:last-child {
+            border-bottom: none;
+        }
+
+        .task button {
+            background: #03dac6;
+            color: white;
+            border: none;
+            padding: 0.3rem 0.8rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .task button:hover {
+            background: #029a94;
+        }
+
+        .task.completed {
+            text-decoration: line-through;
+            color: #888;
+        }
+    </style>
+    <script>
+        async function fetchTasks() {
+            const response = await fetch('/tasks');
+            const tasks = await response.json();
+            const taskDisplay = document.getElementById('task-display');
+            taskDisplay.innerHTML = '';
+
+            tasks.forEach(task => {
+                const taskElement = document.createElement('div');
+                taskElement.classList.add('task');
+                if (task.completed) taskElement.classList.add('completed');
+
+                taskElement.innerHTML = `
+                    <span>ID: ${task.id} - ${task.description}</span>
+                    <button onclick="toggleTask('${task.id}')">${task.completed ? 'Mark as Uncompleted' : 'Mark as Completed'}</button>
+                `;
+
+                taskDisplay.appendChild(taskElement);
+            });
+        }
+
+        async function addTask() {
+            const taskId = document.getElementById('task-id').value;
+            const taskDescription = document.getElementById('task-desc').value;
+
+            if (!taskId || !taskDescription) {
+                alert("Please provide both Task ID and Description");
+                return;
+            }
+
+            await fetch('/add-task', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: taskId, description: taskDescription }),
+            });
+
+            document.getElementById('task-id').value = '';
+            document.getElementById('task-desc').value = '';
+
+            fetchTasks();
+        }
+
+        async function toggleTask(id) {
+            await fetch('/toggle-task', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id }),
+            });
+
+            fetchTasks();
+        }
+    </script>
+</head>
+
+<body>
+    <header>To-Do App</header>
+    <div class="container">
+        <div class="input-group">
+            <input id="task-id" placeholder="Task ID" type="text">
+            <input id="task-desc" placeholder="Task Description" type="text">
+            <button onclick="addTask()">Add Task</button>
+        </div>
+        <div class="tasks">
+            <h2>Tasks</h2>
+            <div id="task-display">No tasks yet. Click "Fetch Tasks" to load tasks.</div>
+            <button class="fetch-btn" onclick="fetchTasks()">Fetch Tasks</button>
+
+        </div>
+    </div>
+</body>
+
+</html>
